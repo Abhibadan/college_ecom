@@ -1,0 +1,82 @@
+#aa-slider {
+    float: left;
+    display: inline;
+    width: 100%;
+  }
+#aa-display .aa-display-area {
+  display: inline;
+  float: left;
+  width: 100%;
+}
+#aa-display .aa-display-area .seq-title {
+  left: 19%;
+  margin-right: 0;
+  position: absolute;
+  top: 30%;
+  width: 57%;
+  text-align: center;
+}
+#aa-display .aa-display-area .seq-title span {
+  background-color: #fff;  
+  display: inline-block;
+  padding: 6px 15px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 28%;
+}
+#aa-display .aa-display-area .seq-title h2 {
+  background-color: rgba(255, 255, 255, 0.932);
+  opacity  : .3;
+  color: #333;
+  display: inline-block;
+  float: none;
+  font-size: 50px;
+  font-family: "Raleway", sans-serif;
+  font-weight: bold;
+  margin-top: 20px;
+  text-align: center;
+  text-transform: uppercase;
+  width: 100%;
+}
+#aa-display .aa-display-area .seq-title p {
+  color: #fff;
+  display: block;
+  text-align: center;
+  letter-spacing: 0.5px;
+  /* margin-top: 30%; */
+}
+#aa-display .aa-display-area .seq-title .aa-shop-now-btn {
+  margin-top: 25px;
+}
+#aa-display .aa-display-area .container_display{
+
+    width: 100%;
+    height: 95%;
+    margin-top: 20px;
+}
+#aa-display .aa-display-area .row_display_main{
+
+    height: 100%;
+}
+#aa-display .aa-display-area .col_display_main{
+
+    height: 100%;
+}
+#aa-display .aa-display-area .row_display_image{
+
+    height: 25%;
+
+}
+#aa-display .aa-display-area .row_display_name{
+
+    height: 25%;
+
+}
+#aa-display .aa-display-area .row_display_price{
+    height: 20%;
+
+}
+#aa-display .aa-display-area .row_display_details{
+    height: 45%;
+
+}
