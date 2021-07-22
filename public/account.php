@@ -1,46 +1,134 @@
 <?php
 session_start();
+if(!empty($_SESSION['id'])){
+    header('location:http://localhost/college_ecom/public/index.php');
+}
 
 require_once('../private/Database.php');
 
+$db = new Database();
+
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
+
+    if(isset($_POST['signup']) && $_POST['signup'] == 'signup'){
    
-  $db = new Database;
-  $password_err = '';
-  $confirm_password_err = '';
-  $aadhaar_err = '';
+       
+        $password_err = '';
+        $confirm_password_err = '';
+        $aadhaar_err = '';
 
-   //collect form data
-   $name = filter_var($_POST['name'],FILTER_SANITIZE_STRING);
-   $email = filter_var($_POST['email'],FILTER_SANITIZE_EMAIL);
-   $password = filter_var($_POST['password'],FILTER_SANITIZE_STRING);
-   $confirmPassword = filter_var($_POST['confirm_password'],FILTER_SANITIZE_STRING);
-   $aadhaar = filter_var($_POST['aadhaar'],FILTER_SANITIZE_NUMBER_INT);
+        //collect form data
+        $name = filter_var($_POST['name'],FILTER_SANITIZE_STRING);
+        $email = filter_var($_POST['email'],FILTER_SANITIZE_EMAIL);
+        $password = filter_var($_POST['password'],FILTER_SANITIZE_STRING);
+        $confirmPassword = filter_var($_POST['confirm_password'],FILTER_SANITIZE_STRING);
+        $aadhaar = filter_var($_POST['aadhaar'],FILTER_SANITIZE_NUMBER_INT);
 
-   if(strlen($password) < 6 ){
-       $password_err = "Paasword should be minimum 6 characters long!";
-    }
+        if(strlen($password) < 6 ){
+            $password_err = "Paasword should be minimum 6 characters long!";
+            }
 
-    if($password !== $confirmPassword){
-      $confirm_password_err = "Password and Confirm password do not match!";
-    }
+            if($password !== $confirmPassword){
+            $confirm_password_err = "Password and Confirm password do not match!";
+            }
 
-    if(strlen($aadhaar) != 12 ){
-      $aadhaar_err = "AADHAAR Number must be 12 digits without any space!";
-     
-    }
+            if(strlen($aadhaar) != 12 ){
+            $aadhaar_err = "AADHAAR Number must be 12 digits without any space!";
+            
+            }
 
-    if($db->validateUserEmail($email)){
-      $email_err = "Email Already Exists!";
-     
-    }
+            if($db->validateUserEmail($email)){
+            $email_err = "Email Already Exists!";
+            
+            }
 
-      if(empty($password_err) && empty($aadhaar_err) && empty($confirm_password_err) && empty($email_err)){
-          $message = "Account Created Successfully.Kindly Login To proceed!";
-          $db->registerUser($name,$aadhaar,$email,$password);
-      }
+            if(empty($password_err) && empty($aadhaar_err) && empty($confirm_password_err) && empty($email_err)){
+                $message = "Account Created Successfully.Kindly Login To proceed!";
+                $db->registerUser($name,$aadhaar,$email,$password);
+            }
+
+       }
+
+       if(isset($_POST['login']) && $_POST['login'] == 'login'){
+        //sanitized form data 
+        $email =  filter_var($_POST['email'],FILTER_SANITIZE_EMAIL);
+        $password = filter_var($_POST['password'],FILTER_SANITIZE_STRING);
+
+        //error fields
+        $password_err = '';
+        $email_err = '';
+       
+       
+        
+        if($db->validateUserEmail($email)){
+            $userDetails = $db->userDetails($email);
+
+            if(password_verify($password,$userDetails->password)){
+                $_SESSION['name'] = $userDetails->name;
+                $_SESSION['id'] = $userDetails->id;
+                $_SESSION['email'] = $userDetails->email;
+             
+                header('location:http://localhost/college_ecom/public/index.php');
+            }else{
+                $password_err = "Invalid login Credentials!";
+            }
+
+        }else{
+            $email_err = "Email Does Not Exists.Please Register!";
+        }
+    
+       }
+
+
+       //logout user
+       if(isset($_POST['logout'])){
+        if($_POST['logout'] == 'logout_user'){
+            session_destroy();
+           }
+        }
+
+        //login using modal
+        if(isset($_POST['email'])){
+        $email =  filter_var($_POST['email'],FILTER_SANITIZE_EMAIL);
+        $password = filter_var($_POST['password'],FILTER_SANITIZE_STRING);
+
+
+
+        if($db->validateUserEmail($email)){
+            $userDetails = $db->userDetails($email);
+
+            if(password_verify($password,$userDetails->password)){
+                $_SESSION['name'] = $userDetails->name;
+                $_SESSION['id'] = $userDetails->id;
+                $_SESSION['email'] = $userDetails->email;
+                $response->success("Login Success");
+                exit;
+            }else{
+                $response->error("Invalid login Credentials!");
+                exit;
+            }
+
+        }else{
+            $response->error("Email Not Found!Please Sign Up.");
+            exit;
+        }
+
+        }
       
+}
+
+ 
+ //cart items
+ if(!empty($_SESSION['id'])){
+  $carts = $db->getCartByUser($_SESSION['id']);
+ }
+  //cart total price
+  $cartTotal = 0;
+  if(!empty($carts)){
+  foreach($carts as $cart){
+      $cartTotal +=  $cart->price;
+    }
 }
 
 ?>
@@ -147,19 +235,40 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                 <!-- / currency -->
                                 <!-- start cellphone -->
                                 <div class="cellphone hidden-xs">
-                                    <p><span class="fa fa-phone"></span>00-62-658-658</p>
+
+                                    <p><span class="fa fa-phone"></span>+91 7003465016 | +91 8777252070</p>
+                                    </p>
                                 </div>
                                 <!-- / cellphone -->
                             </div>
                             <!-- / header top left -->
                             <div class="aa-header-top-right">
                                 <ul class="aa-head-top-nav-right">
+                                    <?php if(isset($_SESSION['email'])) : ?>
+                                    <i class="fa fa-user-circle-o" aria-hidden="true"></i>
+                                    <li><a href="account.php"><?php echo $_SESSION['name']; ?></a></li>
+                                    <?php endif; ?>
+                                    <?php if(!isset($_SESSION['email'])) : ?>
                                     <li><a href="account.php">My Account</a></li>
+                                    <?php endif; ?>
+                                    <?php if(!isset($_SESSION['email'])) : ?>
+                                    <li><a href="seller_register.php">Become A Seller</a></li>
+                                    <?php endif; ?>
                                     <li class="hidden-xs"><a href="wishlist.php">Wishlist</a></li>
                                     <li class="hidden-xs"><a href="cart.php">My Cart</a></li>
                                     <li class="hidden-xs"><a href="checkout.php">Checkout</a></li>
                                     <?php if(isset($_SESSION['name'])): ?>
                                     <li><a href="" data-toggle="modal" data-target="#login-modal">Logout</a></li>
+                                    <?php endif; ?>
+                                    <?php if(isset($_SESSION['email'])) : ?>
+                                    <li>
+                                        <form action="index.php" method="POST">
+                                            <input type="submit" value="Logout" class="logout">
+                                            <input type="hidden" name="logout" value="logout_user">
+                                        </form>
+                                    </li>
+                                    <?php else: ?>
+                                    <li><a href="" data-toggle="modal" data-target="#login-modal">Login</a></li>
                                     <?php endif; ?>
 
                                 </ul>
@@ -193,38 +302,41 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                 <a class="aa-cart-link" href="cart.php">
                                     <span class="fa fa-shopping-basket"></span>
                                     <span class="aa-cart-title">SHOPPING CART</span>
-                                    <span class="aa-cart-notify">2</span>
+                                    <?php if(!empty($_SESSION['id'])): ?><span
+                                        class="aa-cart-notify"><?php  echo $db->getCartCount($_SESSION['id']);  ?></span><?php endif; ?>
                                 </a>
                                 <div class="aa-cartbox-summary">
                                     <ul>
+                                        <?php if(!empty($carts)): ?>
+                                        <?php foreach($carts as $cart): ?>
                                         <li>
-                                            <a class="aa-cartbox-img" href="#"><img src="img/woman-small-2.jpg"
-                                                    alt="img"></a>
+                                            <a class="aa-cartbox-img" href="#"><img
+                                                    src="photos/<?php echo $cart->product_image; ?>" alt="img"></a>
                                             <div class="aa-cartbox-info">
-                                                <h4><a href="#">Product Name</a></h4>
-                                                <p>1 x $250</p>
+                                                <h4><a href="#"><?php echo $cart->product_name; ?></a></h4>
+                                                <p><?php echo $cart->quantity; ?> x <?php echo $cart->price; ?></p>
                                             </div>
                                             <a class="aa-remove-product" href="#"><span class="fa fa-times"></span></a>
                                         </li>
-                                        <li>
-                                            <a class="aa-cartbox-img" href="#"><img src="img/woman-small-1.jpg"
-                                                    alt="img"></a>
-                                            <div class="aa-cartbox-info">
-                                                <h4><a href="#">Product Name</a></h4>
-                                                <p>1 x $250</p>
-                                            </div>
-                                            <a class="aa-remove-product" href="#"><span class="fa fa-times"></span></a>
-                                        </li>
+                                        <?php endforeach; ?>
+                                        <?php endif; ?>
+
                                         <li>
                                             <span class="aa-cartbox-total-title">
                                                 Total
                                             </span>
                                             <span class="aa-cartbox-total-price">
-                                                $500
+                                                &#8377; <?php echo $cartTotal; ?>
                                             </span>
                                         </li>
                                     </ul>
-                                    <a class="aa-cartbox-checkout aa-primary-btn" href="#">Checkout</a>
+                                    <?php if(!isset($_SESSION['id'])): ?>
+                                    <a class="aa-cartbox-checkout aa-primary-btn"
+                                        href="http://localhost/college_ecom/public/account.php">Login</a>
+                                    <?php else: ?>
+                                    <a class="aa-cartbox-checkout aa-primary-btn"
+                                        href="http://localhost/college_ecom/public/checkout.php">Checkout</a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <!-- / cart box -->
@@ -263,108 +375,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                         <!-- Left nav -->
                         <ul class="nav navbar-nav">
                             <li><a href="index.php">Home</a></li>
-                            <li><a href="#">Men <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Casual</a></li>
-                                    <li><a href="#">Sports</a></li>
-                                    <li><a href="#">Formal</a></li>
-                                    <li><a href="#">Standard</a></li>
-                                    <li><a href="#">T-Shirts</a></li>
-                                    <li><a href="#">Shirts</a></li>
-                                    <li><a href="#">Jeans</a></li>
-                                    <li><a href="#">Trousers</a></li>
-                                    <li><a href="#">And more.. <span class="caret"></span></a>
-                                        <ul class="dropdown-menu">
-                                            <li><a href="#">Sleep Wear</a></li>
-                                            <li><a href="#">Sandals</a></li>
-                                            <li><a href="#">Loafers</a></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Women <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Kurta & Kurti</a></li>
-                                    <li><a href="#">Trousers</a></li>
-                                    <li><a href="#">Casual</a></li>
-                                    <li><a href="#">Sports</a></li>
-                                    <li><a href="#">Formal</a></li>
-                                    <li><a href="#">Sarees</a></li>
-                                    <li><a href="#">Shoes</a></li>
-                                    <li><a href="#">And more.. <span class="caret"></span></a>
-                                        <ul class="dropdown-menu">
-                                            <li><a href="#">Sleep Wear</a></li>
-                                            <li><a href="#">Sandals</a></li>
-                                            <li><a href="#">Loafers</a></li>
-                                            <li><a href="#">And more.. <span class="caret"></span></a>
-                                                <ul class="dropdown-menu">
-                                                    <li><a href="#">Rings</a></li>
-                                                    <li><a href="#">Earrings</a></li>
-                                                    <li><a href="#">Jewellery Sets</a></li>
-                                                    <li><a href="#">Lockets</a></li>
-                                                    <li class="disabled"><a class="disabled" href="#">Disabled
-                                                            item</a></li>
-                                                    <li><a href="#">Jeans</a></li>
-                                                    <li><a href="#">Polo T-Shirts</a></li>
-                                                    <li><a href="#">SKirts</a></li>
-                                                    <li><a href="#">Jackets</a></li>
-                                                    <li><a href="#">Tops</a></li>
-                                                    <li><a href="#">Make Up</a></li>
-                                                    <li><a href="#">Hair Care</a></li>
-                                                    <li><a href="#">Perfumes</a></li>
-                                                    <li><a href="#">Skin Care</a></li>
-                                                    <li><a href="#">Hand Bags</a></li>
-                                                    <li><a href="#">Single Bags</a></li>
-                                                    <li><a href="#">Travel Bags</a></li>
-                                                    <li><a href="#">Wallets & Belts</a></li>
-                                                    <li><a href="#">Sunglases</a></li>
-                                                    <li><a href="#">Nail</a></li>
-                                                </ul>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Kids <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Casual</a></li>
-                                    <li><a href="#">Sports</a></li>
-                                    <li><a href="#">Formal</a></li>
-                                    <li><a href="#">Standard</a></li>
-                                    <li><a href="#">T-Shirts</a></li>
-                                    <li><a href="#">Shirts</a></li>
-                                    <li><a href="#">Jeans</a></li>
-                                    <li><a href="#">Trousers</a></li>
-                                    <li><a href="#">And more.. <span class="caret"></span></a>
-                                        <ul class="dropdown-menu">
-                                            <li><a href="#">Sleep Wear</a></li>
-                                            <li><a href="#">Sandals</a></li>
-                                            <li><a href="#">Loafers</a></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Sports</a></li>
-                            <li><a href="#">Digital <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Camera</a></li>
-                                    <li><a href="#">Mobile</a></li>
-                                    <li><a href="#">Tablet</a></li>
-                                    <li><a href="#">Laptop</a></li>
-                                    <li><a href="#">Accesories</a></li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Furniture</a></li>
 
-                            <li><a href="contact.php">Contact</a></li>
-                            <li><a href="#">Pages <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="product.php">Shop Page</a></li>
-                                    <li><a href="product-detail.php">Shop Single</a></li>
-                                    <li><a href="404.php">404 Page</a></li>
-                                </ul>
+                            <li><a href="http://localhost/college_ecom/public/product.php?id=1">Sports</a></li>
+                            <li><a href="http://localhost/college_ecom/public/product.php?id=2">Electronics</a>
                             </li>
-                        </ul>
+
+                            <li><a href="http://localhost/college_ecom/public/contact.php">Contact</a></li>                        </ul>
                     </div>
                     <!--/.nav-collapse -->
                 </div>
@@ -401,14 +417,26 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                             <div class="col-md-6">
                                 <div class="aa-myaccount-login">
                                     <h4>Login</h4>
-                                    <form action="" class="aa-login-form">
-                                        <label for="">Username or Email address<span>*</span></label>
-                                        <input type="text" placeholder="Username or email">
+                                    <form action="account.php" method="POST" class="aa-login-form">
+
+                                        <label for=""> Email address<span>*</span></label>
+                                        <input type="text" placeholder="user@gmail.com" required name="email"
+                                            class="<?php if(!empty($email_err)) { echo 'is-invalid'; } ?>">
+                                        <div class="invalid-feedback text-danger">
+                                            <?php if(!empty($email_err)) { echo $email_err; } ?>
+                                        </div>
+                                        <input type="hidden" value="login" name="login">
                                         <label for="">Password<span>*</span></label>
-                                        <input type="password" placeholder="Password">
-                                        <button type="submit" class="aa-browse-btn">Login</button>
-                                        <label class="rememberme" for="rememberme"><input type="checkbox"
-                                                id="rememberme"> Remember me </label>
+                                        <input type="password" placeholder="Password" name="password" required
+                                            name="password"
+                                            class="<?php if(!empty($password_err)) { echo 'is-invalid'; } ?>">
+                                        <div class="invalid-feedback text-danger">
+                                            <?php  if(!empty($password_err)) { echo $password_err; }  ?>
+                                        </div>
+                                        <button class="aa-browse-btn" type="submit">Login</button>
+                                        <label for="rememberme" class="rememberme"><input type="checkbox"
+                                                id="rememberme"> Remember me
+                                        </label>
                                         <p class="aa-lost-password"><a href="#">Lost your password?</a></p>
                                     </form>
                                 </div>
@@ -420,6 +448,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                         <div class="form-group">
                                             <label for="">Name<span>*</span></label>
                                             <input type="text" placeholder="Ram Wallia" required name="name">
+                                            <input type="hidden" name="signup" value="signup">
                                         </div>
                                         <div class="form-group">
                                             <label for="">Email address<span>*</span></label>
@@ -521,7 +550,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                             <h3>Contact Us</h3>
                                             <address>
                                                 <p> kolkata</p>
-                                                <p><span class="fa fa-phone"></span>+91 7484858555</p>
+                                                <p><span class="fa fa-phone"></span>+91 7003465016 | +91 8777252070</p>
                                                 <p><span class="fa fa-envelope"></span>dailyshop@gmail.com</p>
                                             </address>
                                             <div class="aa-footer-social">
@@ -559,6 +588,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         </div>
     </footer>
     <!-- / footer -->
+
     <!-- Login Modal -->
     <div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
         aria-hidden="true">
@@ -567,23 +597,26 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <div class="modal-body">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4>Login or Register</h4>
-                    <form class="aa-login-form" action="">
-                        <label for="">Username or Email address<span>*</span></label>
-                        <input type="text" placeholder="Username or email">
+                    <form class="aa-login-form" id="login_form">
+                        <div id="login_err" class="text-danger"></div>
+                        <label for=""> Email address<span>*</span></label>
+                        <input type="text" placeholder="user@gmail.com" required id="email">
                         <label for="">Password<span>*</span></label>
-                        <input type="password" placeholder="Password">
+                        <input type="password" placeholder="Password" id="password" required name="password">
                         <button class="aa-browse-btn" type="submit">Login</button>
-                        <label for="rememberme" class="rememberme"><input type="checkbox" id="rememberme"> Remember
-                            me </label>
+                        <label for="rememberme" class="rememberme"><input type="checkbox" id="rememberme"> Remember me
+                        </label>
                         <p class="aa-lost-password"><a href="#">Lost your password?</a></p>
                         <div class="aa-register-now">
-                            Don't have an account?<a href="account.php">Register Now!</a>
+                            Don't have an account?<a href="account.php">Register now!</a>
                         </div>
                     </form>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div>
+
+
 
 
 
@@ -607,6 +640,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     <script type="text/javascript" src="js/nouislider.js"></script>
     <!-- Custom js -->
     <script src="js/custom.js"></script>
+    <script src="js/main.js"></script>
 
 
 </body>

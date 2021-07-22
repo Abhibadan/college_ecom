@@ -1,9 +1,10 @@
 <?php
 class Response{
-    public function success($message){
+    public function success($message,$data = null){
         echo json_encode([
             'status' => '200',
             'message' => $message,
+            'data' => $data
            
         ]);
     }

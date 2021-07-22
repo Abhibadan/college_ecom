@@ -10,7 +10,7 @@
 
  
   if($_SERVER['REQUEST_METHOD'] == 'POST'){
-      
+       
       if(isset($_POST['signin'])){
         $email =  filter_var($_POST['email'],FILTER_SANITIZE_EMAIL);
         $password = filter_var($_POST['password'],FILTER_SANITIZE_STRING);
@@ -19,10 +19,10 @@
             $sellerDetails = $db->sellerDetails($email);
             print_r($sellerDetails);
             if(password_verify($password,$sellerDetails->password)){
-                $_SESSION['id'] = $sellerDetails->id;
-                $_SESSION['name'] = $sellerDetails->name;
-                $_SESSION['email'] = $sellerDetails->email;
-                 header('location:http://localhost/college_ecom/public/seller-dashboard.php');      
+                $_SESSION['seller_name'] = $sellerDetails->name;
+                $_SESSION['seller_email'] = $sellerDetails->email;
+                $_SESSION['seller_id'] = $sellerDetails->id;
+                 header('location:http://localhost/college_ecom/public/seller_profile.php');      
               }
             }
 

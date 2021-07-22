@@ -93,7 +93,7 @@
                 <!-- / currency -->
                 <!-- start cellphone -->
                 <div class="cellphone hidden-xs">
-                  <p><span class="fa fa-phone"></span>+91 7484858555</p>
+                  <p><span class="fa fa-phone"></span>+91 7003465016 | +91 8777252070</p>
                 </div>
                 <!-- / cellphone -->
               </div>
@@ -745,7 +745,7 @@
         <div class="col-md-12">
           <div class="aa-subscribe-area">
             <h3>Subscribe our newsletter </h3>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ex, velit!</p>
+            <p>24/7 Hours available service.Get the latest ServiceNow update</p>
             <form action="" class="aa-subscribe-form">
               <input type="email" name="" id="" placeholder="Enter your Email">
               <input type="submit" value="Subscribe">
@@ -812,7 +812,7 @@
                     <h3>Contact Us</h3>
                     <address>
                       <p>Kolkata</p>
-                      <p><span class="fa fa-phone"></span>+91 7484858555</p>
+                      <p><span class="fa fa-phone"></span>+91 7003465016 | +91 8777252070</p>
                       <p><span class="fa fa-envelope"></span>dailyshop@gmail.com</p>
                     </address>
                     <div class="aa-footer-social">

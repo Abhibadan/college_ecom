@@ -1,6 +1,7 @@
 $(document).ready(() => {
 
 
+    //login form using modal
     $("form#login_form").on("submit", function (e) {
         e.preventDefault();
 
@@ -31,6 +32,8 @@ $(document).ready(() => {
             }
         });
     })
+
+
 
 
 });

@@ -1,18 +1,18 @@
 <?php
 session_start();
- 
+
 require_once('../private/Database.php');
 $db=new Database();
-
+$category = $db->fetchCategory();
 if($_SERVER['REQUEST_METHOD'] == 'POST')
 {
     if(isset($_POST['upload']))
     {
     $fieldErr='';
     $typeErr='';
-    $sellerID=$_SESSION['id'];
+    $sellerID=$_SESSION['seller_id'];
     $productName=filter_var($_POST['name'],FILTER_SANITIZE_STRING);
-    $productcategory=filter_var($_POST['category_ID'],FILTER_SANITIZE_STRING);
+    $productcategory=filter_var($_POST['category'],FILTER_SANITIZE_STRING);
     $productCompany=filter_var($_POST['company'],FILTER_SANITIZE_STRING);
     $productStock=filter_var($_POST['product_stock'],FILTER_SANITIZE_STRING);
     $productDetail=filter_var($_POST['detail'],FILTER_SANITIZE_STRING);
@@ -26,27 +26,25 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     }
     else
     {
-        move_uploaded_file($temp,"upload/".$productImage);
+        $category1=$db->findcategory($productcategory);
+        move_uploaded_file($temp,"photos/".$productImage);
         if($db->uploadProductTable($sellerID,$productName,$productCompany,$productcategory,$productDetail,$price,$productStock,$productImage))
         {
             //find last insertion id
             $productID=$db->findProductID();
-            //insert catagry in corresponding category table
-            //$db->uploadcategoryTable($productID,$productcategory);
             //upload corresponding images
             for($index=0;$index<$lengthOfArray;$index++)
             {
                 @$productImage=$_FILES['image']['name'][$index];
                 @$temp=$_FILES['image']['tmp_name'][$index];
-                move_uploaded_file($temp,"upload/".$productImage);
+                move_uploaded_file($temp,"photos/".$productImage);
                 $db->uploadImageTable($productID,$productImage);
+                header("refresh:0.1; url=upload.php");
             }
         }
     }
    }
 }
-
-$category = $db->fetchCategory();
 
 
 ?>
@@ -57,7 +55,7 @@ $category = $db->fetchCategory();
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Daily Shop | Account Page</title>
+    <title>Daily Shop | Upload Product</title>
 
     <!-- Font awesome -->
     <link href="css/font-awesome.css" rel="stylesheet">
@@ -149,20 +147,29 @@ $category = $db->fetchCategory();
                                 <!-- / currency -->
                                 <!-- start cellphone -->
                                 <div class="cellphone hidden-xs">
-                                    <p><span class="fa fa-phone"></span>00-62-658-658</p>
+                                    <p><span class="fa fa-phone"></span>+91 7003465016 | +91 8777252070</p>
                                 </div>
                                 <!-- / cellphone -->
                             </div>
                             <!-- / header top left -->
                             <div class="aa-header-top-right">
                                 <ul class="aa-head-top-nav-right">
-                                    <li><a href="account.php">My Account</a></li>
-                                    <li class="hidden-xs"><a href="wishlist.php">Wishlist</a></li>
-                                    <li class="hidden-xs"><a href="cart.php">My Cart</a></li>
-                                    <li class="hidden-xs"><a href="checkout.php">Checkout</a></li>
-                                    <?php if(isset($_SESSION['name'])): ?>
-                                    <li><a href="" data-toggle="modal" data-target="#login-modal">Logout</a></li>
+                                    <?php if(isset($_SESSION['seller_email'])) : ?>
+                                    <i class="fa fa-user-circle-o" aria-hidden="true"></i>
+                                    <li><a href="account.php"><?php echo $_SESSION['seller_name']; ?></a></li>
                                     <?php endif; ?>
+                                    <!--<li class="hidden-xs"><a href="wishlist.php">Wishlist</a></li>
+                                    <li class="hidden-xs"><a href="cart.php">My Cart</a></li>
+                                    <li class="hidden-xs"><a href="checkout.php">Checkout</a></li>-->
+                                    <?php if(isset($_SESSION['seller_email'])) : ?>
+                                    <li>
+                                        <form action="index.php" method="POST">
+                                            <input type="submit" value="Logout" class="logout">
+                                            <input type="hidden" name="logout" value="logout_user">
+                                        </form>
+                                    </li>
+                                    <?php endif; ?>
+
 
                                 </ul>
                             </div>
@@ -189,55 +196,7 @@ $category = $db->fetchCategory();
                                 <!-- img based logo -->
                                 <!-- <a href="index.php"><img src="img/logo.jpg" alt="logo img"></a> -->
                             </div>
-                            <!-- / logo  -->
-                            <!-- cart box -->
-                            <div class="aa-cartbox">
-                                <a class="aa-cart-link" href="cart.php">
-                                    <span class="fa fa-shopping-basket"></span>
-                                    <span class="aa-cart-title">SHOPPING CART</span>
-                                    <span class="aa-cart-notify">2</span>
-                                </a>
-                                <div class="aa-cartbox-summary">
-                                    <ul>
-                                        <li>
-                                            <a class="aa-cartbox-img" href="#"><img src="img/woman-small-2.jpg"
-                                                    alt="img"></a>
-                                            <div class="aa-cartbox-info">
-                                                <h4><a href="#">Product Name</a></h4>
-                                                <p>1 x $250</p>
-                                            </div>
-                                            <a class="aa-remove-product" href="#"><span class="fa fa-times"></span></a>
-                                        </li>
-                                        <li>
-                                            <a class="aa-cartbox-img" href="#"><img src="img/woman-small-1.jpg"
-                                                    alt="img"></a>
-                                            <div class="aa-cartbox-info">
-                                                <h4><a href="#">Product Name</a></h4>
-                                                <p>1 x $250</p>
-                                            </div>
-                                            <a class="aa-remove-product" href="#"><span class="fa fa-times"></span></a>
-                                        </li>
-                                        <li>
-                                            <span class="aa-cartbox-total-title">
-                                                Total
-                                            </span>
-                                            <span class="aa-cartbox-total-price">
-                                                $500
-                                            </span>
-                                        </li>
-                                    </ul>
-                                    <a class="aa-cartbox-checkout aa-primary-btn" href="#">Checkout</a>
-                                </div>
-                            </div>
-                            <!-- / cart box -->
-                            <!-- search box -->
-                            <div class="aa-search-box">
-                                <form action="">
-                                    <input type="text" name="" id="" placeholder="Search here ex. 'man' ">
-                                    <button type="submit"><span class="fa fa-search"></span></button>
-                                </form>
-                            </div>
-                            <!-- / search box -->
+
                         </div>
                     </div>
                 </div>
@@ -264,108 +223,10 @@ $category = $db->fetchCategory();
                     <div class="navbar-collapse collapse">
                         <!-- Left nav -->
                         <ul class="nav navbar-nav">
-                            <li><a href="index.php">Home</a></li>
-                            <li><a href="#">Men <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Casual</a></li>
-                                    <li><a href="#">Sports</a></li>
-                                    <li><a href="#">Formal</a></li>
-                                    <li><a href="#">Standard</a></li>
-                                    <li><a href="#">T-Shirts</a></li>
-                                    <li><a href="#">Shirts</a></li>
-                                    <li><a href="#">Jeans</a></li>
-                                    <li><a href="#">Trousers</a></li>
-                                    <li><a href="#">And more.. <span class="caret"></span></a>
-                                        <ul class="dropdown-menu">
-                                            <li><a href="#">Sleep Wear</a></li>
-                                            <li><a href="#">Sandals</a></li>
-                                            <li><a href="#">Loafers</a></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Women <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Kurta & Kurti</a></li>
-                                    <li><a href="#">Trousers</a></li>
-                                    <li><a href="#">Casual</a></li>
-                                    <li><a href="#">Sports</a></li>
-                                    <li><a href="#">Formal</a></li>
-                                    <li><a href="#">Sarees</a></li>
-                                    <li><a href="#">Shoes</a></li>
-                                    <li><a href="#">And more.. <span class="caret"></span></a>
-                                        <ul class="dropdown-menu">
-                                            <li><a href="#">Sleep Wear</a></li>
-                                            <li><a href="#">Sandals</a></li>
-                                            <li><a href="#">Loafers</a></li>
-                                            <li><a href="#">And more.. <span class="caret"></span></a>
-                                                <ul class="dropdown-menu">
-                                                    <li><a href="#">Rings</a></li>
-                                                    <li><a href="#">Earrings</a></li>
-                                                    <li><a href="#">Jewellery Sets</a></li>
-                                                    <li><a href="#">Lockets</a></li>
-                                                    <li class="disabled"><a class="disabled" href="#">Disabled
-                                                            item</a></li>
-                                                    <li><a href="#">Jeans</a></li>
-                                                    <li><a href="#">Polo T-Shirts</a></li>
-                                                    <li><a href="#">SKirts</a></li>
-                                                    <li><a href="#">Jackets</a></li>
-                                                    <li><a href="#">Tops</a></li>
-                                                    <li><a href="#">Make Up</a></li>
-                                                    <li><a href="#">Hair Care</a></li>
-                                                    <li><a href="#">Perfumes</a></li>
-                                                    <li><a href="#">Skin Care</a></li>
-                                                    <li><a href="#">Hand Bags</a></li>
-                                                    <li><a href="#">Single Bags</a></li>
-                                                    <li><a href="#">Travel Bags</a></li>
-                                                    <li><a href="#">Wallets & Belts</a></li>
-                                                    <li><a href="#">Sunglases</a></li>
-                                                    <li><a href="#">Nail</a></li>
-                                                </ul>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Kids <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Casual</a></li>
-                                    <li><a href="#">Sports</a></li>
-                                    <li><a href="#">Formal</a></li>
-                                    <li><a href="#">Standard</a></li>
-                                    <li><a href="#">T-Shirts</a></li>
-                                    <li><a href="#">Shirts</a></li>
-                                    <li><a href="#">Jeans</a></li>
-                                    <li><a href="#">Trousers</a></li>
-                                    <li><a href="#">And more.. <span class="caret"></span></a>
-                                        <ul class="dropdown-menu">
-                                            <li><a href="#">Sleep Wear</a></li>
-                                            <li><a href="#">Sandals</a></li>
-                                            <li><a href="#">Loafers</a></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Sports</a></li>
-                            <li><a href="#">Digital <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Camera</a></li>
-                                    <li><a href="#">Mobile</a></li>
-                                    <li><a href="#">Tablet</a></li>
-                                    <li><a href="#">Laptop</a></li>
-                                    <li><a href="#">Accesories</a></li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Furniture</a></li>
+                            <li><a href="seller_profile.php">Your Profile</a></li>
+                            <li><a href="seller_database.php">Your Products</a></li>
+                            <li><a href="upload.php">Upload</a></li>
 
-                            <li><a href="contact.php">Contact</a></li>
-                            <li><a href="#">Pages <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="product.php">Shop Page</a></li>
-                                    <li><a href="product-detail.php">Shop Single</a></li>
-                                    <li><a href="404.php">404 Page</a></li>
-                                </ul>
-                            </li>
                         </ul>
                     </div>
                     <!--/.nav-collapse -->
@@ -375,24 +236,6 @@ $category = $db->fetchCategory();
         </div>
     </section>
     <!-- / menu -->
-
-    <!-- catg header banner section -->
-    <section id="aa-catg-head-banner">
-        <img src="img/create_account.png" alt="fashion img" class="create_account_banner">
-        <div class="aa-catg-head-banner-area">
-            <div class="container">
-                <div class="aa-catg-head-banner-content">
-                    <h2>Upload Page</h2>
-                    <ol class="breadcrumb">
-                        <li><a href="index.php">Home</a></li>
-                        <li class="active">Upload</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- / catg header banner section -->
-
     <!-- Cart view section -->
     <section id="aa-myaccount">
         <div class="container">
@@ -400,24 +243,23 @@ $category = $db->fetchCategory();
                 <div class="col-md-12">
                     <div class="aa-myaccount-area">
                         <div class="row justify-content-center">
+                            <div class="col-md-3"></div>
                             <div class="col-md-6">
                                 <div class="aa-myaccount-register">
-                                    <h4>Upload Product</h4>
-                                    <form action="upload1.php" method="POST" class="aa-login-form"
+                                    <h4 class="text-center">Upload Product</h4>
+                                    <form action="upload.php" method="POST" class="aa-login-form"
                                         enctype="multipart/form-data">
                                         <div class="form-group">
                                             <label for="">Product Name<span>*</span></label>
                                             <input type="text" required name="name"
                                                 class="<?php if(!empty($fieldErr)) { echo "<span>*".$fieldErr."</span>";} ?>">
-                                        </div>
-                                        <div class="form-group">
                                             <label>product category<span>*</span></label>
-                                            <select name="category_ID">
+                                            <select name="category">
                                                 <option value="">--select--</option>
                                                 <?php echo $category_array['category'];?>
-                                                <?php foreach($category as $category_array):?>
-                                                <option value="<?php echo $category_array->category_ID;?>">
-                                                    <?php echo $category_array->category;?></option>
+                                                <?php foreach($category as $cate):?>
+                                                <option value="<?php echo $cate->category_ID;?>">
+                                                    <?php echo $cate->category;?></option>
                                                 <?php endforeach;?>
                                             </select>
                                         </div>
@@ -441,7 +283,10 @@ $category = $db->fetchCategory();
                                             <label>enter price<span>*</span></label>
                                             <input type="number" name="price" autocomplete="off" required><br>
                                         </div>
-                                        <input type="submit" name="upload" value="UPLOAD">
+                                        <div class="text-center">
+                                            <input type="submit" name="upload" value="UPLOAD"
+                                                style="background-color:#ee4532;border:0px;color:#fff;height:50px;width:130px">
+                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -508,7 +353,7 @@ $category = $db->fetchCategory();
                                             <h3>Contact Us</h3>
                                             <address>
                                                 <p> kolkata</p>
-                                                <p><span class="fa fa-phone"></span>+91 7484858555</p>
+                                                <p><span class="fa fa-phone"></span>+91 7003465016 | +91 8777252070</p>
                                                 <p><span class="fa fa-envelope"></span>dailyshop@gmail.com</p>
                                             </address>
                                             <div class="aa-footer-social">

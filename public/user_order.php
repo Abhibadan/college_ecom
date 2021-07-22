@@ -1,77 +1,11 @@
-<?php 
+<?php
 session_start();
+ 
 require_once('../private/Database.php');
-
-$db = new Database();
-
-
-
- //cart items
- if(!empty($_SESSION['id'])){
-  $carts = $db->getCartByUser($_SESSION['id']);
- }
-  //cart total price
-  $cartTotal = 0;
-  if(!empty($carts)){
-  foreach($carts as $cart){
-      $cartTotal +=  $cart->price;
-    }
-}
-
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
-    //logout user
-    if(isset($_POST['logout'])){
-     if($_POST['logout'] == 'logout_user'){
-         session_destroy();
-        }
-     }
-
-     //login using modal
-     if(isset($_POST['email']) && isset($_POST['password'])){
-     $email =  filter_var($_POST['email'],FILTER_SANITIZE_EMAIL);
-     $password = filter_var($_POST['password'],FILTER_SANITIZE_STRING);
-
-
-
-     if($db->validateUserEmail($email)){
-         $userDetails = $db->userDetails($email);
-
-         if(password_verify($password,$userDetails->password)){
-             $_SESSION['name'] = $userDetails->name;
-             $_SESSION['id'] = $userDetails->id;
-             $_SESSION['email'] = $userDetails->email;
-             $response->success("Login Success");
-             exit;
-         }else{
-             $response->error("Invalid login Credentials!");
-             exit;
-         }
-
-     }else{
-         $response->error("Email Not Found!Please Sign Up.");
-         exit;
-     }
-
-     }
-
-     //contact
-     if(isset($_POST['contact']) && $_POST['contact'] == 'contact'){
-        $name = filter_var($_POST['name'],FILTER_SANITIZE_STRING);
-        $email = filter_var($_POST['email'],FILTER_SANITIZE_STRING);
-        $subject = filter_var($_POST['subject'],FILTER_SANITIZE_STRING);
-        $company = filter_var($_POST['company'],FILTER_SANITIZE_STRING);
-        $message = filter_var($_POST['message'],FILTER_SANITIZE_STRING);
-
-       //save details
-        $db->saveContact($name,$email,$subject,$company,$message);
-        $success_message = "ThankYou For Getting in Touch with Us.We will get Back to you shortly!";
-        
-    }
-     
-}
-
+$db=new Database();
+$id=$_SESSION['id'];
+$findOrdersID=$db->countOrder($id);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -79,7 +13,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Daily Shop | Contact</title>
+    <title>Daily Shop | User Order</title>
 
     <!-- Font awesome -->
     <link href="css/font-awesome.css" rel="stylesheet">
@@ -116,6 +50,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 </head>
 
 <body>
+
+    <?php if(isset($message)) : ?>
+    <div class="alert alert-success text-center"><?php echo $message; ?></div>
+    <?php endif; ?>
+
     <!-- wpf loader Two -->
     <div id="wpf-loader-two">
         <div class="wpf-loader-two-inner">
@@ -224,58 +163,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                 <!-- img based logo -->
                                 <!-- <a href="index.php"><img src="img/logo.jpg" alt="logo img"></a> -->
                             </div>
-                            <!-- / logo  -->
-                            <!-- cart box -->
-                            <div class="aa-cartbox">
-                                <a class="aa-cart-link" href="cart.php">
-                                    <span class="fa fa-shopping-basket"></span>
-                                    <span class="aa-cart-title">SHOPPING CART</span>
-                                    <?php if(!empty($_SESSION['id'])): ?><span
-                                        class="aa-cart-notify"><?php  echo $db->getCartCount($_SESSION['id']);  ?></span><?php endif; ?>
-                                </a>
-                                <div class="aa-cartbox-summary">
-                                    <ul>
-                                        <?php if(!empty($carts)): ?>
-                                        <?php foreach($carts as $cart): ?>
-                                        <li>
-                                            <a class="aa-cartbox-img" href="#"><img
-                                                    src="photos/<?php echo $cart->product_image; ?>" alt="img"></a>
-                                            <div class="aa-cartbox-info">
-                                                <h4><a href="#"><?php echo $cart->product_name; ?></a></h4>
-                                                <p><?php echo $cart->quantity; ?> x <?php echo $cart->price; ?></p>
-                                            </div>
-                                            <a class="aa-remove-product" href="#"><span class="fa fa-times"></span></a>
-                                        </li>
-                                        <?php endforeach; ?>
-                                        <?php endif; ?>
-
-                                        <li>
-                                            <span class="aa-cartbox-total-title">
-                                                Total
-                                            </span>
-                                            <span class="aa-cartbox-total-price">
-                                                &#8377; <?php echo $cartTotal; ?>
-                                            </span>
-                                        </li>
-                                    </ul>
-                                    <?php if(!isset($_SESSION['id'])): ?>
-                                    <a class="aa-cartbox-checkout aa-primary-btn"
-                                        href="http://localhost/college_ecom/public/account.php">Login</a>
-                                    <?php else: ?>
-                                    <a class="aa-cartbox-checkout aa-primary-btn"
-                                        href="http://localhost/college_ecom/public/checkout.php">Checkout</a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <!-- / cart box -->
-                            <!-- search box -->
-                            <div class="aa-search-box">
-                                <form action="">
-                                    <input type="text" name="" id="" placeholder="Search here ex. 'man' ">
-                                    <button type="submit"><span class="fa fa-search"></span></button>
-                                </form>
-                            </div>
-                            <!-- / search box -->
+                            
                         </div>
                     </div>
                 </div>
@@ -284,8 +172,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         <!-- / header bottom  -->
     </header>
     <!-- / header section -->
-    <!-- menu -->
-    <section id="menu">
+     <!-- menu -->
+     <section id="menu">
         <div class="container">
             <div class="menu-area">
                 <!-- Navbar -->
@@ -303,9 +191,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                         <!-- Left nav -->
                         <ul class="nav navbar-nav">
                             <li><a href="index.php">Home</a></li>
+
                             <li><a href="http://localhost/college_ecom/public/product.php?id=1">Sports</a></li>
                             <li><a href="http://localhost/college_ecom/public/product.php?id=2">Electronics</a>
                             </li>
+
                             <li><a href="http://localhost/college_ecom/public/contact.php">Contact</a></li>
                         </ul>
                     </div>
@@ -313,129 +203,73 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 </div>
             </div>
         </div>
-        </div>
-    </section>
-    <!-- / menu -->
-
-    <!-- catg header banner section -->
-    <section id="aa-catg-head-banner">
-        <img src="img/contact_us.png" alt="fashion img" class="create_account_banner">
-        <div class="aa-catg-head-banner-area">
-            <div class="container">
-                <div class="aa-catg-head-banner-content">
-                    <h2>Contact</h2>
-                    <ol class="breadcrumb">
-                        <li><a href="index.php">Home</a></li>
-                        <li class="active">Contact</li>
-                    </ol>
+    </section>        
+    <!-- Cart view section -->
+<section id="cart-view">
+   <div class="container">
+     <div class="row">
+       <div class="col-md-12">
+       
+         <div class="cart-view-area">
+         <h2 class="text-center">Order Details</h2>
+           <div class="cart-view-table">
+             <!--<form action="">-->
+               <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                        <tr>
+                            <th>order id</th>
+                            <th>Product</th>
+                            <th>Product price</th>
+                            <th>Quantity</th>
+                            <th>Total Amount</th>
+                            <th>Order Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($findOrdersID as $record):?>
+                        <tr>
+                            <?php $userOrderTable=$db->userOrder($id,$record->id);?>
+                            <td rowspan="<?php echo(sizeof($userOrderTable));?>"><strong><?php echo($record->id);?></strong></td>
+                            <td><?php echo $userOrderTable[0]->product_name;?></td>
+                            <td><strong>&#8377;<?php echo $userOrderTable[0]->product_price;?></strong></td>
+                            <td><strong><?php echo $userOrderTable[0]->quantity;?></strong></td>
+                            <td rowspan="<?php echo(sizeof($userOrderTable));?>"><strong>&#8377;<?php echo($record->total_amount);?></strong></td>
+                            <?php if($record->order_status=="received"):?>
+                                <td rowspan="<?php echo(sizeof($userOrderTable));?>"><button type="button" style="background-color:orange;color:white;padding:2px;border: none;"><?php echo"Processing";?></button></td>
+                            <?php elseif($record->order_status=="accepted"):?>
+                                <td rowspan="<?php echo(sizeof($userOrderTable));?>"><button type="button" style="background-color:blue;color:white;padding:2px;border: none;"><?php echo"Shipped";?></button></td>
+                            <?php elseif($record->order_status=="completed"):?>
+                                <td rowspan="<?php echo(sizeof($userOrderTable));?>"><button type="button" style="background-color:green;color:white;padding:2px;border: none;"><?php echo"Delivered";?></button></td>
+                            <?php elseif($record->order_status=="failed"):?>
+                                <td rowspan="<?php echo(sizeof($userOrderTable));?>"><button type="button" style="background-color:red;color:white;padding:2px;border: none;"><?php echo"failed";?></button></td>
+                            <?php elseif($record->order_status=="refund"):?>
+                                <td rowspan="<?php echo(sizeof($userOrderTable));?>"><button type="button" style="background-color:yellow;color:white;padding:2px;border: none;"><?php echo"refund";?></button></td>
+                            <?php endif;?>
+                            
+                        </tr>
+                        
+                            <?php if(sizeof($userOrderTable)>1):?>
+                            <?php for($index=1;$index<sizeof($userOrderTable);$index++):?>
+                            <tr>
+                                <td><?php echo $userOrderTable[$index]->product_name;?></td>
+                                <td><strong>&#8377;<?php echo $userOrderTable[$index]->product_price;?></strong></td>
+                                <td><strong><?php echo $userOrderTable[$index]->quantity;?></strong></td>
+                            
+                            </tr>
+                            <?php endfor;?>
+                            <?php endif;?>
+                      </tbody>
+                      <?php endforeach;?>
+                  </table>
                 </div>
-            </div>
-        </div>
-    </section>
-    <!-- / catg header banner section -->
-    <!-- start contact section -->
-    <section id="aa-contact">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="aa-contact-area">
-                        <div class="aa-contact-top">
-                            <h2>We are wating to assist you..</h2>
-                            <p>24/7 support means customers can get help and find answers to questions as soon as they
-                                come up—24/7 and in real-time. </p>
-                        </div>
-                        <!-- contact map -->
-                        <!-- <div class="aa-contact-map">
-                            <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3902.3714257064535!2d-86.7550931378034!3d34.66757706940219!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8862656f8475892d%3A0xf3b1aee5313c9d4d!2sHuntsville%2C+AL+35813%2C+USA!5e0!3m2!1sen!2sbd!4v1445253385137"
-                                width="100%" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
-                        </div> -->
-                        <div id="map" style="width:100%;height:400px;"></div>
-                        <!-- Contact address -->
-                        <div class="aa-contact-address">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="aa-contact-address-left">
-                                        <form class="comments-form contact-form" action="contact.php" method="POST">
-                                            <?php if(!empty($success_message)): ?>
-                                            <div class="alert alert-success"><?php echo $success_message; ?></div>
-                                            <?php endif; ?>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <input type="text" placeholder="Your Name" name="name"
-                                                            class="form-control">
-                                                        <input type="hidden" name="contact" value="contact">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <input type="email" name="email" placeholder="Email"
-                                                            class="form-control">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <input type="text" name="subject" placeholder="Subject"
-                                                            class="form-control">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <input type="text" name="company" placeholder="Company"
-                                                            class="form-control">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <textarea class="form-control" rows="3" placeholder="Message"
-                                                    name="message"></textarea>
-                                            </div>
-                                            <button class="aa-secondary-btn">Send</button>
-                                        </form>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="aa-contact-address-right">
-                                        <address>
-                                            <h4>DailyShop</h4>
-                                            <p>24/7 support means customers can get help and find answers to questions as soon as they come up—24/7 and in real-time</p>
-                                            <p><span class="fa fa-home"></span>Kolkata</p>
-                                            <p><span class="fa fa-phone"></span>+91 7003465016 | +91 8777252070</p>
-                                            <p><span class="fa fa-envelope"></span>Email: dailyshop@gmail.com</p>
-                                        </address>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Subscribe section -->
-    <section id="aa-subscribe">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="aa-subscribe-area">
-                        <h3>Subscribe our newsletter </h3>
-                        <p>24/7 Hours available service.Get the latest ServiceNow update</p>
-                        <form action="" class="aa-subscribe-form">
-                            <input type="email" name="" id="" placeholder="Enter your Email">
-                            <input type="submit" value="Subscribe">
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- / Subscribe section -->
-
+             <!--</form>-->
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
+   <div class="row" style="height:100px"></div>
     <!-- footer -->
     <footer id="aa-footer">
         <!-- footer bottom -->
@@ -490,7 +324,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                         <div class="aa-footer-widget">
                                             <h3>Contact Us</h3>
                                             <address>
-                                                <p>Kolkata</p>
+                                                <p> kolkata</p>
                                                 <p><span class="fa fa-phone"></span>+91 7003465016 | +91 8777252070</p>
                                                 <p><span class="fa fa-envelope"></span>dailyshop@gmail.com</p>
                                             </address>
@@ -537,24 +371,25 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <div class="modal-body">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4>Login or Register</h4>
-                    <form class="aa-login-form" id="login_form">
-                        <div id="login_err" class="text-danger"></div>
-                        <label for=""> Email address<span>*</span></label>
-                        <input type="text" placeholder="user@gmail.com" required id="email">
+                    <form class="aa-login-form" action="">
+                        <label for="">Username or Email address<span>*</span></label>
+                        <input type="text" placeholder="Username or email">
                         <label for="">Password<span>*</span></label>
-                        <input type="password" placeholder="Password" id="password" required name="password">
+                        <input type="password" placeholder="Password">
                         <button class="aa-browse-btn" type="submit">Login</button>
-                        <label for="rememberme" class="rememberme"><input type="checkbox" id="rememberme"> Remember me
-                        </label>
+                        <label for="rememberme" class="rememberme"><input type="checkbox" id="rememberme"> Remember
+                            me </label>
                         <p class="aa-lost-password"><a href="#">Lost your password?</a></p>
                         <div class="aa-register-now">
-                            Don't have an account?<a href="account.php">Register now!</a>
+                            Don't have an account?<a href="account.php">Register Now!</a>
                         </div>
                     </form>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div>
+
+
 
     <!-- jQuery library -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -576,36 +411,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     <script type="text/javascript" src="js/nouislider.js"></script>
     <!-- Custom js -->
     <script src="js/custom.js"></script>
-    <script src="js/main.js"></script>
 
-
-
-    <script>
-    let map;
-
-    function initMap() {
-
-        var options = {
-            center: {
-                lat: 22.5822,
-                lng: 88.2345
-            },
-            zoom: 13,
-        }
-
-        map = new google.maps.Map(document.getElementById("map"), options);
-
-
-        map = new google.maps.Map(document.getElementById("map"), options);
-
-        const marker = new google.maps.Marker({
-            position: options.center,
-            map: map,
-        });
-    }
-    </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDoD94OmxmBcp89GtsxRFVz1ccBbSvhkfo&callback=initMap">
-    </script>
 
 </body>
 
